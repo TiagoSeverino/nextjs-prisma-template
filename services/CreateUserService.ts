@@ -1,7 +1,6 @@
 import { hash } from "bcryptjs";
-import { IsNotEmpty } from "class-validator";
-
 import { User } from "../database/prismaClient";
+import { UserCredentials, validateObject } from "../validators";
 
 interface Response {
   id: string;
@@ -10,10 +9,13 @@ interface Response {
   updatedAt: Date | string;
 }
 
-const CreateUserService = async ({
-  username,
-  password,
-}: CreateUserBody): Promise<Response> => {
+const CreateUserService = async (
+  credentials: UserCredentials
+): Promise<Response> => {
+  await validateObject(UserCredentials, credentials);
+
+  const { username, password } = credentials;
+
   const userExists = await User.findUnique({
     where: { username },
   });
@@ -38,11 +40,3 @@ const CreateUserService = async ({
 };
 
 export default CreateUserService;
-
-export class CreateUserBody {
-  @IsNotEmpty()
-  username!: string;
-
-  @IsNotEmpty()
-  password!: string;
-}
